@@ -27,7 +27,21 @@ class ConvNet:
         conv2_channels, int - number of filters in the 2nd conv layer
         """
         # TODO Create necessary layers
-        raise Exception("Not implemented!")
+        # raise Exception("Not implemented!")
+
+        self.out_classes = n_output_classes
+        image_width, image_height, in_channels = input_shape
+
+        self.layers = [
+            ConvolutionalLayer(in_channels, conv1_channels, 3, 1),
+            ReLULayer(),
+            MaxPoolingLayer(4, 4),
+            ConvolutionalLayer(conv1_channels, conv2_channels, 3, 1),
+            ReLULayer(),
+            MaxPoolingLayer(4, 4),
+            Flattener(),
+            FullyConnectedLayer(4 * conv2_channels, n_output_classes)
+        ]
 
     def compute_loss_and_gradients(self, X, y):
         """
@@ -44,17 +58,49 @@ class ConvNet:
         # TODO Compute loss and fill param gradients
         # Don't worry about implementing L2 regularization, we will not
         # need it in this assignment
-        raise Exception("Not implemented!")
+        # raise Exception("Not implemented!")
+
+        for param in self.params().values():
+            param.grad = np.zeros_like(param.value)
+
+        for layer in self.layers:
+            X = layer.forward(X)
+
+        loss, grad = softmax_with_cross_entropy(X, y)
+
+        for layer in reversed(self.layers):
+            grad = layer.backward(grad)
+
+        return loss
 
     def predict(self, X):
         # You can probably copy the code from previous assignment
-        raise Exception("Not implemented!")
+        # raise Exception("Not implemented!")
+
+        for layer in self.layers:
+            X = layer.forward(X)
+
+        # raise Exception("Not implemented!")
+        # return pred
+
+        pred = np.argmax(X, axis=1)
+
+        return pred
 
     def params(self):
         result = {}
 
         # TODO: Aggregate all the params from all the layers
         # which have parameters
-        raise Exception("Not implemented!")
+        # raise Exception("Not implemented!")
+
+        result = {
+            'W0': self.layers[0].params()['W'],
+            'B0': self.layers[0].params()['B'],
+            'W3': self.layers[3].params()['W'],
+            'B3': self.layers[3].params()['B'],
+            'W7': self.layers[7].params()['W'],
+            'B7': self.layers[7].params()['B']
+        }
 
         return result
